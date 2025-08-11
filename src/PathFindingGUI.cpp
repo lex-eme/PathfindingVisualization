@@ -16,9 +16,17 @@ void PathFindingGUI::run() {
         sUserInput();
         ImGui::SFML::Update(m_window, deltaClock.restart());
         ImGui::ShowDemoWindow();
+
+        ImGui::SetNextWindowSize({500, 500});
+        if (ImGui::Begin("Window 1")) {
+            ImGui::Text("Hello darkness");
+        }
+        ImGui::End();
+
         sRender();
     }
     ImGui::SFML::Shutdown();
+    m_window.close();
 }
 
 void PathFindingGUI::init() {
@@ -33,39 +41,72 @@ void PathFindingGUI::loadMap() {
 }
 
 void PathFindingGUI::sUserInput() {
-    m_window.handleEvents(
-        [&]<typename Event>(const Event& event) {
-            ImGui::SFML::ProcessEvent(m_window, event);
+    while (const std::optional<sf::Event> event = m_window.pollEvent()) {
+        ImGui::SFML::ProcessEvent(m_window, event.value());
 
-            if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::Closed>) {
-                m_running = false;
-            } else if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::KeyPressed>) {
-                switch (event.code) {
-                    case sf::Keyboard::Key::N:
-                        m_bfs.searchIteration();
-                        break;
-                    case sf::Keyboard::Key::Escape:
-                        m_running = false;
-                        break;
-                    default: break;
-                }
-            } else if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::MouseButtonPressed>) {
-                switch (event.button) {
-                    case sf::Mouse::Button::Left: {
-                        startPosition = screenToWorld(event.position);
-                        m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-                        //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-                        break;
-                    }
-                    case sf::Mouse::Button::Right: {
-                        goalPosition = screenToWorld(event.position);
-                        m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-                        //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-                    }
-                    default: break;
-                }
+        if (event->is<sf::Event::Closed>()) {
+            m_running = false;
+        } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            switch (keyPressed->code) {
+                case sf::Keyboard::Key::Escape:
+                    m_running = false;
+                break;
+                case sf::Keyboard::Key::N:
+                    m_bfs.searchIteration();
+                break;
+                default: break;
             }
-        });
+        } else if (const auto* buttonClicked = event->getIf<sf::Event::MouseButtonPressed>()) {
+            switch (buttonClicked->button) {
+                case sf::Mouse::Button::Left: {
+                    startPosition = screenToWorld(buttonClicked->position);
+                    m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+                    //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+                    break;
+                }
+                case sf::Mouse::Button::Right: {
+                    goalPosition = screenToWorld(buttonClicked->position);
+                    m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+                    //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+                }
+                default: break;
+            }
+        }
+    }
+    //
+    // m_window.handleEvents(
+    //     [&]<typename Event>(const Event &event) {
+    //         ImGui::SFML::ProcessEvent(m_window, event);
+    //
+    //         if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::Closed>) {
+    //             m_running = false;
+    //         } else if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::KeyPressed>) {
+    //             switch (event.code) {
+    //                 case sf::Keyboard::Key::N:
+    //                     m_bfs.searchIteration();
+    //                     break;
+    //                 case sf::Keyboard::Key::Escape:
+    //                     m_running = false;
+    //                     break;
+    //                 default: break;
+    //             }
+    //         } else if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::MouseButtonPressed>) {
+    //             switch (event.button) {
+    //                 case sf::Mouse::Button::Left: {
+    //                     startPosition = screenToWorld(event.position);
+    //                     m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+    //                     //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+    //                     break;
+    //                 }
+    //                 case sf::Mouse::Button::Right: {
+    //                     goalPosition = screenToWorld(event.position);
+    //                     m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+    //                     //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+    //                 }
+    //                 default: break;
+    //             }
+    //         }
+    //     });
 }
 
 void PathFindingGUI::sRender() {
