@@ -8,14 +8,14 @@
 
 class PathFindingGUI {
     sf::RenderWindow m_window;
-    sf::Vector2i startPosition {-1, -1};
-    sf::Vector2i goalPosition {-1, -1};
+    sf::Vector2i startPosition{-1, -1};
+    sf::Vector2i goalPosition{-1, -1};
     float m_tileSize = 32.0f;
     bool m_running = true;
     WorldMap& m_map;
     BFS m_bfs;
 
-    Config m_config {0, true};
+    Config m_config{0, true};
     ConfigMenu m_configMenu;
 
 public:

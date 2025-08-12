@@ -1,6 +1,5 @@
 #include "BFS.h"
 
-
 BFS::BFS(WorldMap& map) : m_map(map) {
 }
 
@@ -79,7 +78,7 @@ std::vector<Action> BFS::getPath() const {
     std::vector<Action> result;
 
     const Node* node = m_node;
-    while (node->m_parent!= nullptr) {
+    while (node->m_parent != nullptr) {
         result.push_back({node->m_x, node->m_y});
         node = node->m_parent;
     }

@@ -1,4 +1,3 @@
-
 #include "PathFindingGUI.h"
 
 int main() {

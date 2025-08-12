@@ -1,7 +1,6 @@
 #include "PathFindingGUI.h"
 
 #include <imgui-SFML.h>
-#include <imgui.h>
 
 PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map), m_bfs(m_map),
                                                 m_configMenu(200.0f, m_map.getBounds().y * m_tileSize,

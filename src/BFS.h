@@ -26,10 +26,10 @@ public:
     void startSearch(int sx, int sy, int gx, int gy);
     void searchIteration();
 
-    Action getStart() const;
-    Action getGoal() const;
-    std::vector<Action> getClosedList() const;
-    std::vector<Action> getPath() const;
+    [[nodiscard]] Action getStart() const;
+    [[nodiscard]] Action getGoal() const;
+    [[nodiscard]] std::vector<Action> getClosedList() const;
+    [[nodiscard]] std::vector<Action> getPath() const;
 
 private:
     void expand();
