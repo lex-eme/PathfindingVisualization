@@ -3,10 +3,10 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
-
-PathFindingGUI::PathFindingGUI() : m_bfs(m_map) {
-    loadMap();
-    init();
+PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map), m_bfs(m_map),
+                                                m_configMenu(200.0f, m_map.getBounds().y * m_tileSize,
+                                                             m_map.getBounds().x * m_tileSize, 0.0f, this, m_config) {
+    initWindow();
     m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
 }
 
@@ -14,30 +14,29 @@ void PathFindingGUI::run() {
     sf::Clock deltaClock;
     while (m_running) {
         sUserInput();
+
         ImGui::SFML::Update(m_window, deltaClock.restart());
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
+        m_configMenu.sRender();
 
-        ImGui::SetNextWindowSize({500, 500});
-        if (ImGui::Begin("Window 1")) {
-            ImGui::Text("Hello darkness");
+        if (m_config.typeIndex == 1) {
+            m_bfs.searchIteration();
         }
-        ImGui::End();
-
         sRender();
     }
     ImGui::SFML::Shutdown();
     m_window.close();
 }
 
-void PathFindingGUI::init() {
+void PathFindingGUI::initWindow() {
     const auto bounds = m_map.getBounds();
-    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize)), "Pathfinding");
-    m_window.setFramerateLimit(60);
+    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 200, bounds.y * m_tileSize)), "Pathfinding");
+    m_window.setFramerateLimit(30);
     ImGui::SFML::Init(m_window);
 }
 
-void PathFindingGUI::loadMap() {
-    m_map.loadFromFile("../../assets/map2.txt");
+void PathFindingGUI::loadMap(const std::string& path) const {
+    m_map.loadFromFile(path);
 }
 
 void PathFindingGUI::sUserInput() {
@@ -50,63 +49,31 @@ void PathFindingGUI::sUserInput() {
             switch (keyPressed->code) {
                 case sf::Keyboard::Key::Escape:
                     m_running = false;
-                break;
+                    break;
                 case sf::Keyboard::Key::N:
                     m_bfs.searchIteration();
-                break;
+                    break;
                 default: break;
             }
         } else if (const auto* buttonClicked = event->getIf<sf::Event::MouseButtonPressed>()) {
             switch (buttonClicked->button) {
                 case sf::Mouse::Button::Left: {
-                    startPosition = screenToWorld(buttonClicked->position);
-                    m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-                    //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+                    if (isInViewport(buttonClicked->position)) {
+                        startPosition = screenToWorld(buttonClicked->position);
+                        restart();
+                    }
                     break;
                 }
                 case sf::Mouse::Button::Right: {
-                    goalPosition = screenToWorld(buttonClicked->position);
-                    m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-                    //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+                    if (isInViewport(buttonClicked->position)) {
+                        goalPosition = screenToWorld(buttonClicked->position);
+                        restart();
+                    }
                 }
                 default: break;
             }
         }
     }
-    //
-    // m_window.handleEvents(
-    //     [&]<typename Event>(const Event &event) {
-    //         ImGui::SFML::ProcessEvent(m_window, event);
-    //
-    //         if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::Closed>) {
-    //             m_running = false;
-    //         } else if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::KeyPressed>) {
-    //             switch (event.code) {
-    //                 case sf::Keyboard::Key::N:
-    //                     m_bfs.searchIteration();
-    //                     break;
-    //                 case sf::Keyboard::Key::Escape:
-    //                     m_running = false;
-    //                     break;
-    //                 default: break;
-    //             }
-    //         } else if constexpr (std::is_same_v<std::decay_t<Event>, sf::Event::MouseButtonPressed>) {
-    //             switch (event.button) {
-    //                 case sf::Mouse::Button::Left: {
-    //                     startPosition = screenToWorld(event.position);
-    //                     m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-    //                     //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-    //                     break;
-    //                 }
-    //                 case sf::Mouse::Button::Right: {
-    //                     goalPosition = screenToWorld(event.position);
-    //                     m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-    //                     //m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
-    //                 }
-    //                 default: break;
-    //             }
-    //         }
-    //     });
 }
 
 void PathFindingGUI::sRender() {
@@ -159,12 +126,14 @@ void PathFindingGUI::sRender() {
     rect.setPosition({m_bfs.getGoal().x * m_tileSize, m_bfs.getGoal().y * m_tileSize});
     m_window.draw(rect);
 
-    for (int i = 0; i < bounds.x; i++) {
-        drawLine(i * m_tileSize, 0, i * m_tileSize, bounds.y * m_tileSize, sf::Color(30, 30, 30));
-    }
+    if (m_config.showGrid) {
+        for (int i = 0; i < bounds.x; i++) {
+            drawLine(i * m_tileSize, 0, i * m_tileSize, bounds.y * m_tileSize, sf::Color(30, 30, 30));
+        }
 
-    for (int j = 0; j < bounds.y; j++) {
-        drawLine(0, j * m_tileSize, bounds.x * m_tileSize, j * m_tileSize, sf::Color(30, 30, 30));
+        for (int j = 0; j < bounds.y; j++) {
+            drawLine(0, j * m_tileSize, bounds.x * m_tileSize, j * m_tileSize, sf::Color(30, 30, 30));
+        }
     }
 
     ImGui::SFML::Render(m_window);
@@ -180,7 +149,19 @@ void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::
     m_window.draw(line, 2, sf::PrimitiveType::LineStrip);
 }
 
+void PathFindingGUI::restart() {
+    if (m_config.typeIndex == 0) {
+        m_bfs.solve(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+    } else if (m_config.typeIndex <= 3) {
+        m_bfs.startSearch(startPosition.x, startPosition.y, goalPosition.x, goalPosition.y);
+    }
+}
+
 sf::Vector2i PathFindingGUI::screenToWorld(const sf::Vector2i screenPos) const {
     const int size = static_cast<int>(m_tileSize);
     return screenPos / size;
+}
+
+bool PathFindingGUI::isInViewport(const sf::Vector2i screenPos) const {
+    return screenPos.x < (m_map.getBounds().x * m_tileSize);
 }

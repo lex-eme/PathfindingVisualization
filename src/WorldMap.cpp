@@ -5,14 +5,13 @@
 void WorldMap::loadFromFile(const std::string& path) {
     std::ifstream file(path);
 
-    int val;
     file >> m_width >> m_height;
 
-    m_grid = std::vector<int>(m_width * m_height);
+    m_grid.clear();
+    m_grid.reserve(m_width * m_height);
 
     for (int x = 0; x < m_width * m_height; x++) {
-        file >> val;
-        m_grid[x] = val;
+        file >> m_grid[x];
     }
 }
 
