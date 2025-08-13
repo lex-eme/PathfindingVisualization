@@ -4,6 +4,27 @@
 #include "WorldMap.h"
 #include "Node.h"
 
+class BFS;
+
+class NodeQueue {
+    friend BFS;
+
+    Node** m_nodes;
+    size_t m_length = 64;
+    size_t m_start = 0;
+    size_t m_end = 0;
+    size_t m_count = 0;
+
+public:
+    NodeQueue();
+
+    [[nodiscard]] bool empty() const;
+
+    void push(Node* node);
+    Node* pop();
+    void clear();
+};
+
 class BFS {
     WorldMap& m_map;
     int m_startX = -1;
@@ -14,7 +35,7 @@ class BFS {
 
     bool m_inProgress = false;
     Node* m_node = nullptr;
-    std::queue<Node*> m_openList;
+    NodeQueue m_openList;
     std::vector<Node*> m_closedList;
 
 public:
@@ -29,12 +50,14 @@ public:
     [[nodiscard]] Action getStart() const;
     [[nodiscard]] Action getGoal() const;
     [[nodiscard]] std::vector<Action> getClosedList() const;
+    [[nodiscard]] std::vector<Action> getOpenList() const;
     [[nodiscard]] std::vector<Action> getPath() const;
 
 private:
     void expand();
     bool isInClosedList(const Node* node) const;
     bool isInClosedList(int x, int y) const;
+    bool isInOpenList(int x, int y) const;
     void freeRemainingOpenList();
     void freeRemainingClosedList();
 };

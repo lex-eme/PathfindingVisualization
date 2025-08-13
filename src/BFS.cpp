@@ -1,5 +1,43 @@
 #include "BFS.h"
 
+#include <iostream>
+
+NodeQueue::NodeQueue() {
+    m_nodes = new Node*[m_length];
+}
+
+void NodeQueue::push(Node* node) {
+    if (m_count >= m_length) {
+        std::cerr << "QueueNode is full." << std::endl;
+        return;
+    }
+
+    m_nodes[m_end] = node;
+    m_count += 1;
+    m_end = (m_end + 1) % m_length;
+}
+
+Node* NodeQueue::pop() {
+    if (m_count <= 0) {
+        std::cerr << "QueueNode is empty" << std::endl;
+        return nullptr;
+    }
+    Node* node = m_nodes[m_start];
+    m_start = (m_start + 1) % m_length;
+    m_count -= 1;
+    return node;
+}
+
+void NodeQueue::clear() {
+    m_count = 0;
+    m_start = 0;
+    m_end = 0;
+}
+
+bool NodeQueue::empty() const {
+    return m_count == 0;
+}
+
 BFS::BFS(WorldMap& map) : m_map(map) {
 }
 
@@ -39,12 +77,7 @@ void BFS::searchIteration() {
         return;
     }
 
-    m_node = m_openList.front();
-    m_openList.pop();
-
-    if (isInClosedList(m_node)) {
-        return;
-    }
+    m_node = m_openList.pop();
 
     if (m_node->m_x == m_goalX && m_node->m_y == m_goalY) {
         m_inProgress = false;
@@ -66,9 +99,21 @@ Action BFS::getGoal() const {
 
 std::vector<Action> BFS::getClosedList() const {
     std::vector<Action> result;
+    result.reserve(m_closedList.size());
 
     for (const auto node: m_closedList) {
         result.push_back({node->m_x, node->m_y});
+    }
+
+    return result;
+}
+
+std::vector<Action> BFS::getOpenList() const {
+    std::vector<Action> result;
+
+    for (size_t i = 0; i < m_openList.m_count; i++) {
+        const size_t index = (m_openList.m_start + i) % m_openList.m_length;
+        result.push_back({m_openList.m_nodes[index]->m_x, m_openList.m_nodes[index]->m_y});
     }
 
     return result;
@@ -90,14 +135,12 @@ void BFS::expand() {
     // ACTIONS                                  UP            DOWN                  LEFT            RIGHT
     const static std::vector<Action> actions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
-    for (int i = 0; i < actions.size(); i++) {
-        const Action action = actions[i];
-
+    for (auto action: actions) {
         if (m_map.isLegalAction(m_node->m_x, m_node->m_y, action)) {
             const int newX = m_node->m_x + action.x;
             const int newY = m_node->m_y + action.y;
-            if (!isInClosedList(newX, newY)) {
-                auto newNode = new Node(m_node, actions[i], newX, newY, m_node->m_depth + 1);
+            if (!isInClosedList(newX, newY) && !isInOpenList(newX, newY)) {
+                const auto newNode = new Node(m_node, action, newX, newY, m_node->m_depth + 1);
                 m_openList.push(newNode);
             }
         }
@@ -105,18 +148,21 @@ void BFS::expand() {
 }
 
 bool BFS::isInClosedList(const Node* node) const {
-    for (const auto n: m_closedList) {
-        if (n->m_x == node->m_x && n->m_y == node->m_y) {
-            return true;
-        }
-    }
-
-    return false;
+    return std::any_of(m_closedList.begin(), m_closedList.end(), [node](const Node* n) {
+        return n->m_x == node->m_x && n->m_y == node->m_y;
+    });
 }
 
 bool BFS::isInClosedList(const int x, const int y) const {
-    for (const auto n: m_closedList) {
-        if (n->m_x == x && n->m_y == y) {
+    return std::any_of(m_closedList.begin(), m_closedList.end(), [x, y](const Node* n) {
+        return n->m_x == x && n->m_y == y;
+    });
+}
+
+bool BFS::isInOpenList(int x, int y) const {
+    for (size_t i = 0; i < m_openList.m_count; i++) {
+        const size_t index = (m_openList.m_start + i) % m_openList.m_length;
+        if (m_openList.m_nodes[index]->m_x == x && m_openList.m_nodes[index]->m_y == y) {
             return true;
         }
     }
@@ -126,8 +172,7 @@ bool BFS::isInClosedList(const int x, const int y) const {
 
 void BFS::freeRemainingOpenList() {
     while (!m_openList.empty()) {
-        const Node* node = m_openList.front();
-        m_openList.pop();
+        const Node* node = m_openList.pop();
         delete node;
     }
 }
