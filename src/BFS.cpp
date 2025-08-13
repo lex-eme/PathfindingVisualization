@@ -74,6 +74,7 @@ void BFS::searchIteration() {
 
     if (m_openList.empty()) {
         m_inProgress = false;
+        std::cout << "Destination unreachable" << std::endl;
         return;
     }
 
@@ -81,6 +82,7 @@ void BFS::searchIteration() {
 
     if (m_node->m_x == m_goalX && m_node->m_y == m_goalY) {
         m_inProgress = false;
+        std::cout << "Destination found" << std::endl;
         return;
     }
 
