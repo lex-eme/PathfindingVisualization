@@ -15,8 +15,11 @@ class PathFindingGUI {
     WorldMap& m_map;
     BFS m_bfs;
 
-    Config m_config{0, true};
+    Config m_config{0, 1.0f, true};
     ConfigMenu m_configMenu;
+
+    float m_animationTime = 0.5f;
+    float m_timeSinceLastAnimation = 0.0f;
 
 public:
     explicit PathFindingGUI(WorldMap& map);
@@ -29,6 +32,7 @@ private:
     void loadMap(const std::string& path) const;
 
     void sUserInput();
+    void update(sf::Time deltaTime);
     void sRender();
     void drawLine(float x1, float y1, float x2, float y2, sf::Color color);
 

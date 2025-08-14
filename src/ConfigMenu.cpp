@@ -25,7 +25,7 @@ void ConfigMenu::sRender() {
 
         const char* items[] = {"Instantaneous", "Animated", "Step by step"};
 
-        if (ImGui::BeginCombo("combo 1", items[m_config.typeIndex], ImGuiComboFlags_HeightSmall)) {
+        if (ImGui::BeginCombo("Type", items[m_config.typeIndex], ImGuiComboFlags_HeightSmall)) {
             for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
                 const bool is_selected = (m_config.typeIndex == n);
                 if (ImGui::Selectable(items[n], is_selected)) {
@@ -44,6 +44,7 @@ void ConfigMenu::sRender() {
         if (ImGui::Button("Restart")) {
             gui->restart();
         }
+        ImGui::SliderFloat("Speed", &m_config.animMultiplier, 2.0f, 0.0f, "%.3f");
     }
     ImGui::End();
 }

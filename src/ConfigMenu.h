@@ -4,6 +4,7 @@ class PathFindingGUI;
 
 struct Config {
     int typeIndex;
+    float animMultiplier;
     bool showGrid;
 };
 

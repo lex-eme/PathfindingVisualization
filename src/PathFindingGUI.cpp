@@ -13,16 +13,17 @@ PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map), m_bfs(m_map),
 void PathFindingGUI::run() {
     sf::Clock deltaClock;
     while (m_running) {
+        const auto deltaTime = deltaClock.restart();
+        ImGui::SFML::Update(m_window, deltaTime);
         sUserInput();
 
-        ImGui::SFML::Update(m_window, deltaClock.restart());
         ImGui::ShowDemoWindow();
-        m_configMenu.sRender();
 
-        if (m_config.typeIndex == 1) {
-            m_bfs.searchIteration();
-        }
+        update(deltaTime);
         sRender();
+
+        ImGui::SFML::Render(m_window);
+        m_window.display();
     }
     ImGui::SFML::Shutdown();
     m_window.close();
@@ -30,8 +31,9 @@ void PathFindingGUI::run() {
 
 void PathFindingGUI::initWindow() {
     const auto bounds = m_map.getBounds();
-    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 200, bounds.y * m_tileSize)), "Pathfinding");
-    m_window.setFramerateLimit(30);
+    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 200, bounds.y * m_tileSize)), "Pathfinding",
+                    sf::Style::Titlebar | sf::Style::Close);
+    m_window.setVerticalSyncEnabled(true);
     ImGui::SFML::Init(m_window);
 }
 
@@ -74,6 +76,18 @@ void PathFindingGUI::sUserInput() {
             }
         }
     }
+}
+
+void PathFindingGUI::update(const sf::Time deltaTime) {
+    if (m_config.typeIndex == 1) {
+        m_timeSinceLastAnimation += deltaTime.asSeconds();
+        if (m_timeSinceLastAnimation >= m_animationTime * m_config.animMultiplier) {
+            m_bfs.searchIteration();
+            m_timeSinceLastAnimation = 0.0f;
+        }
+    }
+
+    m_configMenu.sRender();
 }
 
 void PathFindingGUI::sRender() {
@@ -142,9 +156,6 @@ void PathFindingGUI::sRender() {
             drawLine(0, j * m_tileSize, bounds.x * m_tileSize, j * m_tileSize, sf::Color(30, 30, 30));
         }
     }
-
-    ImGui::SFML::Render(m_window);
-    m_window.display();
 }
 
 void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::Color color) {

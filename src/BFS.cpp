@@ -74,7 +74,7 @@ void BFS::searchIteration() {
 
     if (m_openList.empty()) {
         m_inProgress = false;
-        std::cout << "Destination unreachable" << std::endl;
+        std::cout << "Unreachable destination" << std::endl;
         return;
     }
 
@@ -82,7 +82,9 @@ void BFS::searchIteration() {
 
     if (m_node->m_x == m_goalX && m_node->m_y == m_goalY) {
         m_inProgress = false;
-        std::cout << "Destination found" << std::endl;
+        std::cout << "Path found" << std::endl;
+        const size_t createdNodeCount = m_openList.m_count + m_closedList.size();
+        std::cout << "Nodes created: " << createdNodeCount << std::endl;
         return;
     }
 
