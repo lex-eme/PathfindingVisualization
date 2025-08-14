@@ -63,8 +63,9 @@ std::vector<Action> PF_DFS::getClosedList() const {
 
 std::vector<Action> PF_DFS::getOpenList() const {
     std::vector<Action> result;
+    result.reserve(m_openList.size());
 
-    for (const auto node : m_openList) {
+    for (const auto node: m_openList) {
         result.push_back({node->m_x, node->m_y});
     }
 
