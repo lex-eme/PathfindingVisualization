@@ -11,5 +11,7 @@ add_executable(main main.cpp
         ConfigMenu.h
         PF.cpp
         PF.h
+        PF_DFS.cpp
+        PF_DFS.h
 )
 target_link_libraries(main PRIVATE ImGui-SFML::ImGui-SFML)

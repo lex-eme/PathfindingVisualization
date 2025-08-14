@@ -1,8 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-#include "PF_BFS.h"
 #include "ConfigMenu.h"
+#include "PF.h"
 #include "WorldMap.h"
 
 
