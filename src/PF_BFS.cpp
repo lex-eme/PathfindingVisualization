@@ -1,4 +1,4 @@
-#include "BFS.h"
+#include "PF_BFS.h"
 
 #include <iostream>
 
@@ -38,24 +38,15 @@ bool NodeQueue::empty() const {
     return m_count == 0;
 }
 
-BFS::BFS(WorldMap& map) : m_map(map) {
+PF_BFS::PF_BFS(WorldMap& map): PF(map) {
 }
 
-BFS::~BFS() {
+PF_BFS::~PF_BFS() {
     freeRemainingOpenList();
     freeRemainingClosedList();
 }
 
-void BFS::solve(const int sx, const int sy, const int gx, const int gy) {
-    startSearch(sx, sy, gx, gy);
-    while (m_inProgress) {
-        searchIteration();
-    }
-}
-
-void BFS::startSearch(const int sx, const int sy, const int gx, const int gy) {
-    m_startX = sx;
-    m_startY = sy;
+void PF_BFS::startSearch(const int sx, const int sy, const int gx, const int gy) {
     m_goalX = gx;
     m_goalY = gy;
 
@@ -67,7 +58,7 @@ void BFS::startSearch(const int sx, const int sy, const int gx, const int gy) {
     m_openList.push(m_node);
 }
 
-void BFS::searchIteration() {
+void PF_BFS::searchIteration() {
     if (!m_inProgress) {
         return;
     }
@@ -93,15 +84,7 @@ void BFS::searchIteration() {
     expand();
 }
 
-Action BFS::getStart() const {
-    return {m_startX, m_startY};
-}
-
-Action BFS::getGoal() const {
-    return {m_goalX, m_goalY};
-}
-
-std::vector<Action> BFS::getClosedList() const {
+std::vector<Action> PF_BFS::getClosedList() const {
     std::vector<Action> result;
     result.reserve(m_closedList.size());
 
@@ -112,7 +95,7 @@ std::vector<Action> BFS::getClosedList() const {
     return result;
 }
 
-std::vector<Action> BFS::getOpenList() const {
+std::vector<Action> PF_BFS::getOpenList() const {
     std::vector<Action> result;
 
     for (size_t i = 0; i < m_openList.m_count; i++) {
@@ -123,7 +106,7 @@ std::vector<Action> BFS::getOpenList() const {
     return result;
 }
 
-std::vector<Action> BFS::getPath() const {
+std::vector<Action> PF_BFS::getPath() const {
     std::vector<Action> result;
 
     const Node* node = m_node;
@@ -135,7 +118,7 @@ std::vector<Action> BFS::getPath() const {
     return result;
 }
 
-void BFS::expand() {
+void PF_BFS::expand() {
     // ACTIONS                                  UP            DOWN                  LEFT            RIGHT
     const static std::vector<Action> actions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
@@ -151,19 +134,13 @@ void BFS::expand() {
     }
 }
 
-bool BFS::isInClosedList(const Node* node) const {
-    return std::any_of(m_closedList.begin(), m_closedList.end(), [node](const Node* n) {
-        return n->m_x == node->m_x && n->m_y == node->m_y;
-    });
-}
-
-bool BFS::isInClosedList(const int x, const int y) const {
+bool PF_BFS::isInClosedList(const int x, const int y) const {
     return std::any_of(m_closedList.begin(), m_closedList.end(), [x, y](const Node* n) {
         return n->m_x == x && n->m_y == y;
     });
 }
 
-bool BFS::isInOpenList(int x, int y) const {
+bool PF_BFS::isInOpenList(const int x, const int y) const {
     for (size_t i = 0; i < m_openList.m_count; i++) {
         const size_t index = (m_openList.m_start + i) % m_openList.m_length;
         if (m_openList.m_nodes[index]->m_x == x && m_openList.m_nodes[index]->m_y == y) {
@@ -174,14 +151,14 @@ bool BFS::isInOpenList(int x, int y) const {
     return false;
 }
 
-void BFS::freeRemainingOpenList() {
+void PF_BFS::freeRemainingOpenList() {
     while (!m_openList.empty()) {
         const Node* node = m_openList.pop();
         delete node;
     }
 }
 
-void BFS::freeRemainingClosedList() {
+void PF_BFS::freeRemainingClosedList() {
     for (const auto node: m_closedList) {
         delete node;
     }

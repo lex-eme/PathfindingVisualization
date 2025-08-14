@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-#include "BFS.h"
+#include "PF_BFS.h"
 #include "ConfigMenu.h"
 #include "WorldMap.h"
 
@@ -13,7 +13,7 @@ class PathFindingGUI {
     float m_tileSize = 32.0f;
     bool m_running = true;
     WorldMap& m_map;
-    BFS m_bfs;
+    PF* m_pathfinding;
 
     Config m_config{0, 1.0f, true};
     ConfigMenu m_configMenu;
@@ -25,7 +25,7 @@ public:
     explicit PathFindingGUI(WorldMap& map);
 
     void run();
-    void restart();
+    void restart() const;
 
 private:
     void initWindow();

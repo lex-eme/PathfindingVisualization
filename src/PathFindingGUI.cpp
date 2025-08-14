@@ -3,11 +3,12 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
-PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map), m_bfs(m_map),
+PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map),
                                                 m_configMenu(200.0f, m_map.getBounds().y * m_tileSize,
                                                              m_map.getBounds().x * m_tileSize, 0.0f, this, m_config) {
     initWindow();
-    m_bfs.startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+    m_pathfinding = new PF_BFS(map);
+    m_pathfinding->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
 }
 
 void PathFindingGUI::run() {
@@ -53,7 +54,7 @@ void PathFindingGUI::sUserInput() {
                     m_running = false;
                     break;
                 case sf::Keyboard::Key::N:
-                    m_bfs.searchIteration();
+                    m_pathfinding->searchIteration();
                     break;
                 default: break;
             }
@@ -61,14 +62,14 @@ void PathFindingGUI::sUserInput() {
             switch (buttonClicked->button) {
                 case sf::Mouse::Button::Left: {
                     if (isInViewport(buttonClicked->position)) {
-                        m_startPosition = screenToWorld(buttonClicked->position);
+                        m_goalPosition = screenToWorld(buttonClicked->position);
                         restart();
                     }
                     break;
                 }
                 case sf::Mouse::Button::Right: {
                     if (isInViewport(buttonClicked->position)) {
-                        m_goalPosition = screenToWorld(buttonClicked->position);
+                        m_startPosition = screenToWorld(buttonClicked->position);
                         restart();
                     }
                 }
@@ -82,7 +83,7 @@ void PathFindingGUI::update(const sf::Time deltaTime) {
     if (m_config.typeIndex == 1) {
         m_timeSinceLastAnimation += deltaTime.asSeconds();
         if (m_timeSinceLastAnimation >= m_animationTime * m_config.animMultiplier) {
-            m_bfs.searchIteration();
+            m_pathfinding->searchIteration();
             m_timeSinceLastAnimation = 0.0f;
         }
     }
@@ -120,31 +121,31 @@ void PathFindingGUI::sRender() {
 
     rect.setFillColor(sf::Color::Red);
 
-    for (const auto [x, y]: m_bfs.getClosedList()) {
+    for (const auto [x, y]: m_pathfinding->getClosedList()) {
         rect.setPosition({x * m_tileSize, y * m_tileSize});
         m_window.draw(rect);
     }
 
     rect.setFillColor(sf::Color(255, 128, 0));
 
-    for (const auto [x, y]: m_bfs.getOpenList()) {
+    for (const auto [x, y]: m_pathfinding->getOpenList()) {
         rect.setPosition({x * m_tileSize, y * m_tileSize});
         m_window.draw(rect);
     }
 
     rect.setFillColor(sf::Color::White);
 
-    for (const auto [x, y]: m_bfs.getPath()) {
+    for (const auto [x, y]: m_pathfinding->getPath()) {
         rect.setPosition({x * m_tileSize, y * m_tileSize});
         m_window.draw(rect);
     }
 
     rect.setFillColor(sf::Color::Yellow);
-    rect.setPosition({m_bfs.getStart().x * m_tileSize, m_bfs.getStart().y * m_tileSize});
+    rect.setPosition({m_startPosition.x * m_tileSize, m_startPosition.y * m_tileSize});
     m_window.draw(rect);
 
     rect.setFillColor(sf::Color::Cyan);
-    rect.setPosition({m_bfs.getGoal().x * m_tileSize, m_bfs.getGoal().y * m_tileSize});
+    rect.setPosition({m_goalPosition.x * m_tileSize, m_goalPosition.y * m_tileSize});
     m_window.draw(rect);
 
     if (m_config.showGrid) {
@@ -167,11 +168,11 @@ void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::
     m_window.draw(line, 2, sf::PrimitiveType::LineStrip);
 }
 
-void PathFindingGUI::restart() {
+void PathFindingGUI::restart() const {
     if (m_config.typeIndex == 0) {
-        m_bfs.solve(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+        m_pathfinding->solve(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
     } else if (m_config.typeIndex <= 3) {
-        m_bfs.startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+        m_pathfinding->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
     }
 }
 
