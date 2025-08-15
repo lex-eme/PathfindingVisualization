@@ -6,6 +6,10 @@ NodeQueue::NodeQueue() {
     m_nodes = new Node*[m_length];
 }
 
+NodeQueue::~NodeQueue() {
+    delete m_nodes;
+}
+
 void NodeQueue::push(Node* node) {
     if (m_count >= m_length) {
         std::cerr << "QueueNode is full." << std::endl;
@@ -18,7 +22,7 @@ void NodeQueue::push(Node* node) {
 }
 
 Node* NodeQueue::pop() {
-    if (m_count <= 0) {
+    if (m_count < 1) {
         std::cerr << "QueueNode is empty" << std::endl;
         return nullptr;
     }

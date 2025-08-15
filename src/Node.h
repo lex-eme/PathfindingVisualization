@@ -11,7 +11,9 @@ struct Node {
     int m_x = 0;
     int m_y = 0;
     int m_depth = 0;
+    int m_heuristic = 0;
 
     Node() = default;
     Node(Node* parent, const Action& action, int x, int y, int depth);
+    Node(Node* parent, const Action& action, int x, int y, int depth, int heuristic);
 };

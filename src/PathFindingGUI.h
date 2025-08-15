@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "ConfigMenu.h"
-#include "PF.h"
+#include "pathfinding/PF.h"
 #include "WorldMap.h"
 
 

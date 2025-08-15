@@ -1,43 +1,42 @@
 #pragma once
-#include <queue>
-
-#include "WorldMap.h"
-#include "Node.h"
 #include "PF.h"
 
-class PF_BFS;
+class PF_BeFS;
 
-class NodeQueue {
-    friend PF_BFS;
+class NodePriorityQueue {
+    friend PF_BeFS;
 
     Node** m_nodes;
     size_t m_length = 64;
-    size_t m_start = 0;
-    size_t m_end = 0;
     size_t m_count = 0;
 
 public:
-    NodeQueue();
+    NodePriorityQueue();
+    ~NodePriorityQueue();
 
     [[nodiscard]] bool empty() const;
 
     void push(Node* node);
     Node* pop();
     void clear();
+
+private:
+    [[nodiscard]] static size_t left(size_t index);
+    [[nodiscard]] static size_t right(size_t index);
+    [[nodiscard]] static size_t parent(size_t index);
 };
 
-class PF_BFS final : public PF {
+class PF_BeFS final : public PF {
     int m_goalX = -1;
     int m_goalY = -1;
-    int m_cost = 0;
 
     Node* m_node = nullptr;
-    NodeQueue m_openList;
+    NodePriorityQueue m_openList;
     std::vector<Node*> m_closedList;
 
 public:
-    explicit PF_BFS(WorldMap& map);
-    ~PF_BFS() override;
+    explicit PF_BeFS(WorldMap& map);
+    ~PF_BeFS() override;
 
     void startSearch(int sx, int sy, int gx, int gy) override;
     void searchIteration() override;

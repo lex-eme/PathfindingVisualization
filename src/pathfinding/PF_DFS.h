@@ -1,15 +1,13 @@
 #pragma once
 #include <queue>
 
-#include "WorldMap.h"
-#include "Node.h"
+#include "../Node.h"
 #include "PF.h"
 
 
 class PF_DFS final : public PF {
     int m_goalX = -1;
     int m_goalY = -1;
-    int m_cost = 0;
 
     Node* m_node = nullptr;
     std::vector<Node*> m_openList;
