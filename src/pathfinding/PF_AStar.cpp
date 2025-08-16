@@ -4,20 +4,18 @@
 
 PF_AStar::PF_AStar(WorldMap& map)
     : PF(map), m_openList(512) {
+    m_nodes.reserve(1024);
 }
 
-PF_AStar::~PF_AStar() {
-    freeRemainingOpenList();
-    freeRemainingClosedList();
-}
+PF_AStar::~PF_AStar() = default;
 
 void PF_AStar::startSearch(const int sx, const int sy, const int gx, const int gy) {
     m_goalX = gx;
     m_goalY = gy;
 
     m_inProgress = true;
-    freeRemainingOpenList();
-    freeRemainingClosedList();
+    m_openList.clear();
+    m_closedList.clear();
 
     m_node = new Node(nullptr, {0, 0}, sx, sy, 0);
     m_openList.push(m_node);
@@ -100,8 +98,8 @@ void PF_AStar::expand() {
             int heuristic = abs(m_goalX - newX) + abs(m_goalY - newY);
 
             if (!isInClosedList(newX, newY)) {
-                const auto newNode = new Node(m_node, action, newX, newY, m_node->m_depth + 1, m_node->m_depth + heuristic);
-                m_openList.push(newNode);
+                m_nodes.emplace_back(m_node, action, newX, newY, m_node->m_depth + 1, m_node->m_depth + heuristic);
+                m_openList.push(&m_nodes.back());
             }
         }
     }
@@ -121,21 +119,4 @@ bool PF_AStar::isInOpenList(const int x, const int y) const {
     }
 
     return false;
-}
-
-void PF_AStar::freeRemainingOpenList() {
-    for (size_t i = 0; i < m_openList.m_count; i++) {
-        const Node* node = m_openList.m_nodes[i];
-        delete node;
-    }
-
-    m_openList.clear();
-}
-
-void PF_AStar::freeRemainingClosedList() {
-    for (const auto node: m_closedList) {
-        delete node;
-    }
-
-    m_closedList.clear();
 }

@@ -4,20 +4,18 @@
 
 
 PF_BFS::PF_BFS(WorldMap& map): PF(map) {
+    m_nodes.reserve(1024);
 }
 
-PF_BFS::~PF_BFS() {
-    freeRemainingOpenList();
-    freeRemainingClosedList();
-}
+PF_BFS::~PF_BFS() = default;
 
 void PF_BFS::startSearch(const int sx, const int sy, const int gx, const int gy) {
     m_goalX = gx;
     m_goalY = gy;
 
     m_inProgress = true;
-    freeRemainingOpenList();
-    freeRemainingClosedList();
+    m_openList.clear();
+    m_closedList.clear();
 
     m_node = new Node(nullptr, {0, 0}, sx, sy, 0);
     m_openList.push(m_node);
@@ -93,8 +91,8 @@ void PF_BFS::expand() {
             const int newX = m_node->m_x + action.x;
             const int newY = m_node->m_y + action.y;
             if (!isInClosedList(newX, newY) && !isInOpenList(newX, newY)) {
-                const auto newNode = new Node(m_node, action, newX, newY, m_node->m_depth + 1);
-                m_openList.push(newNode);
+                m_nodes.emplace_back(m_node, action, newX, newY, m_node->m_depth + 1);
+                m_openList.push(&m_nodes.back());
             }
         }
     }
@@ -115,19 +113,4 @@ bool PF_BFS::isInOpenList(const int x, const int y) const {
     }
 
     return false;
-}
-
-void PF_BFS::freeRemainingOpenList() {
-    while (!m_openList.empty()) {
-        const Node* node = m_openList.pop();
-        delete node;
-    }
-}
-
-void PF_BFS::freeRemainingClosedList() {
-    for (const auto node: m_closedList) {
-        delete node;
-    }
-
-    m_closedList.clear();
 }

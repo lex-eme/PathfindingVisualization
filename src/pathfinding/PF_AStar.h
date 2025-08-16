@@ -7,6 +7,7 @@ class PF_AStar final : public PF {
     int m_goalX = -1;
     int m_goalY = -1;
 
+    std::vector<Node> m_nodes;
     Node* m_node = nullptr;
     NodePriorityQueue m_openList;
     std::vector<Node*> m_closedList;
@@ -26,6 +27,4 @@ private:
     void expand();
     [[nodiscard]] bool isInClosedList(int x, int y) const;
     [[nodiscard]] bool isInOpenList(int x, int y) const;
-    void freeRemainingOpenList();
-    void freeRemainingClosedList();
 };
