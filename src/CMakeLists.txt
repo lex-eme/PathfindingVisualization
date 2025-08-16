@@ -15,5 +15,9 @@ add_executable(main main.cpp
         pathfinding/PF_DFS.h
         pathfinding/PF_BeFS.cpp
         pathfinding/PF_BeFS.h
+        "data structures/NodePriorityQueue.cpp"
+        "data structures/NodePriorityQueue.h"
+        "data structures/NodeQueue.cpp"
+        "data structures/NodeQueue.h"
 )
 target_link_libraries(main PRIVATE ImGui-SFML::ImGui-SFML)
