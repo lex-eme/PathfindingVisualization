@@ -3,9 +3,11 @@
 
 
 class PF_BeFS;
+class PF_AStar;
 
 class NodePriorityQueue {
     friend PF_BeFS;
+    friend PF_AStar;
 
     Node** m_nodes;
     size_t m_length;

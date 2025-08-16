@@ -1,17 +1,17 @@
-#include "PF_BFS.h"
+#include "PF_AStar.h"
 
 #include <iostream>
 
-
-PF_BFS::PF_BFS(WorldMap& map): PF(map) {
+PF_AStar::PF_AStar(WorldMap& map)
+    : PF(map), m_openList(512) {
 }
 
-PF_BFS::~PF_BFS() {
+PF_AStar::~PF_AStar() {
     freeRemainingOpenList();
     freeRemainingClosedList();
 }
 
-void PF_BFS::startSearch(const int sx, const int sy, const int gx, const int gy) {
+void PF_AStar::startSearch(const int sx, const int sy, const int gx, const int gy) {
     m_goalX = gx;
     m_goalY = gy;
 
@@ -23,7 +23,7 @@ void PF_BFS::startSearch(const int sx, const int sy, const int gx, const int gy)
     m_openList.push(m_node);
 }
 
-void PF_BFS::searchIteration() {
+void PF_AStar::searchIteration() {
     if (!m_inProgress) {
         return;
     }
@@ -35,6 +35,10 @@ void PF_BFS::searchIteration() {
     }
 
     m_node = m_openList.pop();
+
+    if (isInClosedList(m_node->m_x, m_node->m_y)) {
+        return;
+    }
 
     if (m_node->m_x == m_goalX && m_node->m_y == m_goalY) {
         m_inProgress = false;
@@ -50,7 +54,7 @@ void PF_BFS::searchIteration() {
     expand();
 }
 
-std::vector<Action> PF_BFS::getClosedList() const {
+std::vector<Action> PF_AStar::getClosedList() const {
     std::vector<Action> result;
     result.reserve(m_closedList.size());
 
@@ -61,18 +65,18 @@ std::vector<Action> PF_BFS::getClosedList() const {
     return result;
 }
 
-std::vector<Action> PF_BFS::getOpenList() const {
+std::vector<Action> PF_AStar::getOpenList() const {
     std::vector<Action> result;
+    result.reserve(m_openList.m_count);
 
     for (size_t i = 0; i < m_openList.m_count; i++) {
-        const size_t index = (m_openList.m_start + i) % m_openList.m_length;
-        result.push_back({m_openList.m_nodes[index]->m_x, m_openList.m_nodes[index]->m_y});
+        result.push_back({m_openList.m_nodes[i]->m_x, m_openList.m_nodes[i]->m_y});
     }
 
     return result;
 }
 
-std::vector<Action> PF_BFS::getPath() const {
+std::vector<Action> PF_AStar::getPath() const {
     std::vector<Action> result;
 
     const Node* node = m_node;
@@ -84,7 +88,7 @@ std::vector<Action> PF_BFS::getPath() const {
     return result;
 }
 
-void PF_BFS::expand() {
+void PF_AStar::expand() {
     // ACTIONS                                  UP            DOWN                  LEFT            RIGHT
     const static std::vector<Action> actions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
@@ -92,24 +96,26 @@ void PF_BFS::expand() {
         if (m_map.isLegalAction(m_node->m_x, m_node->m_y, action)) {
             const int newX = m_node->m_x + action.x;
             const int newY = m_node->m_y + action.y;
-            if (!isInClosedList(newX, newY) && !isInOpenList(newX, newY)) {
-                const auto newNode = new Node(m_node, action, newX, newY, m_node->m_depth + 1);
+
+            int heuristic = abs(m_goalX - newX) + abs(m_goalY - newY);
+
+            if (!isInClosedList(newX, newY)) {
+                const auto newNode = new Node(m_node, action, newX, newY, m_node->m_depth + 1, m_node->m_depth + heuristic);
                 m_openList.push(newNode);
             }
         }
     }
 }
 
-bool PF_BFS::isInClosedList(const int x, const int y) const {
+bool PF_AStar::isInClosedList(int x, int y) const {
     return std::any_of(m_closedList.begin(), m_closedList.end(), [x, y](const Node* n) {
         return n->m_x == x && n->m_y == y;
     });
 }
 
-bool PF_BFS::isInOpenList(const int x, const int y) const {
+bool PF_AStar::isInOpenList(const int x, const int y) const {
     for (size_t i = 0; i < m_openList.m_count; i++) {
-        const size_t index = (m_openList.m_start + i) % m_openList.m_length;
-        if (m_openList.m_nodes[index]->m_x == x && m_openList.m_nodes[index]->m_y == y) {
+        if (m_openList.m_nodes[i]->m_x == x && m_openList.m_nodes[i]->m_y == y) {
             return true;
         }
     }
@@ -117,14 +123,16 @@ bool PF_BFS::isInOpenList(const int x, const int y) const {
     return false;
 }
 
-void PF_BFS::freeRemainingOpenList() {
-    while (!m_openList.empty()) {
-        const Node* node = m_openList.pop();
+void PF_AStar::freeRemainingOpenList() {
+    for (size_t i = 0; i < m_openList.m_count; i++) {
+        const Node* node = m_openList.m_nodes[i];
         delete node;
     }
+
+    m_openList.clear();
 }
 
-void PF_BFS::freeRemainingClosedList() {
+void PF_AStar::freeRemainingClosedList() {
     for (const auto node: m_closedList) {
         delete node;
     }

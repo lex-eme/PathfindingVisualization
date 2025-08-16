@@ -3,7 +3,8 @@
 #include <iostream>
 
 
-PF_BeFS::PF_BeFS(WorldMap& map) : PF(map), m_openList(64) {
+PF_BeFS::PF_BeFS(WorldMap& map)
+    : PF(map), m_openList(64) {
 }
 
 PF_BeFS::~PF_BeFS() {
