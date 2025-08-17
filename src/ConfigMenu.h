@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 class PathFindingGUI;
 
@@ -9,6 +10,7 @@ enum VisualizationType: int {
 struct Config {
     VisualizationType type;
     float animMultiplier;
+    size_t pfIndex;
     bool animPaused;
     bool showGrid;
 };

@@ -9,11 +9,14 @@
 #include "pathfinding/PF_DFS.h"
 
 PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map),
-                                                m_configMenu(200.0f, m_map.getBounds().y * m_tileSize,
+                                                m_pfs{
+                                                    new PF_BFS(map), new PF_DFS(map), new PF_BeFS(map),
+                                                    new PF_AStar(map)
+                                                },
+                                                m_configMenu(300.0f, m_map.getBounds().y * m_tileSize,
                                                              m_map.getBounds().x * m_tileSize, 0.0f, this, m_config) {
     initWindow();
-    m_pathfinding = new PF_AStar(map);
-    m_pathfinding->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+    m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
 }
 
 void PathFindingGUI::run() {
@@ -37,7 +40,7 @@ void PathFindingGUI::run() {
 
 void PathFindingGUI::initWindow() {
     const auto bounds = m_map.getBounds();
-    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 200, bounds.y * m_tileSize)), "Pathfinding",
+    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 300, bounds.y * m_tileSize)), "Pathfinding",
                     sf::Style::Titlebar | sf::Style::Close);
     m_window.setVerticalSyncEnabled(true);
     ImGui::SFML::Init(m_window);
@@ -88,7 +91,7 @@ void PathFindingGUI::update(const sf::Time deltaTime) {
     if (m_config.type == Animated && !m_config.animPaused) {
         m_timeSinceLastAnimation += deltaTime.asSeconds();
         if (m_timeSinceLastAnimation >= m_animationTime * m_config.animMultiplier) {
-            m_pathfinding->searchIteration();
+            m_pfs[m_config.pfIndex]->searchIteration();
             m_timeSinceLastAnimation = 0.0f;
         }
     }
@@ -126,21 +129,21 @@ void PathFindingGUI::sRender() {
 
     rect.setFillColor(sf::Color::Red);
 
-    for (const auto [x, y]: m_pathfinding->getClosedList()) {
+    for (const auto [x, y]: m_pfs[m_config.pfIndex]->getClosedList()) {
         rect.setPosition({x * m_tileSize, y * m_tileSize});
         m_window.draw(rect);
     }
 
     rect.setFillColor(sf::Color(255, 128, 0));
 
-    for (const auto [x, y]: m_pathfinding->getOpenList()) {
+    for (const auto [x, y]: m_pfs[m_config.pfIndex]->getOpenList()) {
         rect.setPosition({x * m_tileSize, y * m_tileSize});
         m_window.draw(rect);
     }
 
     rect.setFillColor(sf::Color::White);
 
-    for (const auto [x, y]: m_pathfinding->getPath()) {
+    for (const auto [x, y]: m_pfs[m_config.pfIndex]->getPath()) {
         rect.setPosition({x * m_tileSize, y * m_tileSize});
         m_window.draw(rect);
     }
@@ -176,17 +179,18 @@ void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::
 void PathFindingGUI::restart() const {
     switch (m_config.type) {
         case Instant:
-            m_pathfinding->solve(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+            m_pfs[m_config.pfIndex]->solve(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
             break;
         case Animated:
         case Step:
-            m_pathfinding->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+            m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x,
+                                               m_goalPosition.y);
             break;
     }
 }
 
 void PathFindingGUI::iterate() const {
-    m_pathfinding->searchIteration();
+    m_pfs[m_config.pfIndex]->searchIteration();
 }
 
 sf::Vector2i PathFindingGUI::screenToWorld(const sf::Vector2i screenPos) const {

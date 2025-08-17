@@ -91,4 +91,22 @@ void ConfigMenu::mapSubMenu() const {
 
 void ConfigMenu::algorithmSubMenu() const {
     ImGui::SeparatorText("Algorithm");
+
+    const char* items[] = {"Breadth first search", "Depth first search", "Best first search", "A*"};
+
+    if (ImGui::BeginCombo("Algo", items[m_config.pfIndex], ImGuiComboFlags_HeightSmall)) {
+        for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+            const bool is_selected = (m_config.pfIndex == n);
+            if (ImGui::Selectable(items[n], is_selected)) {
+                m_config.pfIndex = n;
+                m_gui->restart();
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
 }
