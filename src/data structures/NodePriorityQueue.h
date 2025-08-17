@@ -2,15 +2,13 @@
 #include "../Node.h"
 
 
-class PF_BeFS;
-class PF_AStar;
+class PriorityQueueOpenList;
 
 class NodePriorityQueue {
-    friend PF_BeFS;
-    friend PF_AStar;
+    friend PriorityQueueOpenList;
 
     Node** m_nodes;
-    size_t m_length;
+    size_t m_capacity;
     size_t m_count = 0;
 
 public:

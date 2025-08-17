@@ -1,13 +1,14 @@
 #pragma once
 #include "../Node.h"
 
-class PF_BFS;
+
+class QueueOpenList;
 
 class NodeQueue {
-    friend PF_BFS;
+    friend QueueOpenList;
 
     Node** m_nodes;
-    size_t m_length = 64;
+    size_t m_capacity = 64;
     size_t m_start = 0;
     size_t m_end = 0;
     size_t m_count = 0;

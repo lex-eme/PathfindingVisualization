@@ -4,12 +4,12 @@
 
 
 NodePriorityQueue::NodePriorityQueue(const size_t maxSize)
-    : m_length(maxSize) {
-    m_nodes = new Node*[m_length];
+    : m_capacity(maxSize) {
+    m_nodes = new Node*[m_capacity];
 }
 
 NodePriorityQueue::~NodePriorityQueue() {
-    delete m_nodes;
+    delete[] m_nodes;
 }
 
 bool NodePriorityQueue::empty() const {
@@ -17,7 +17,7 @@ bool NodePriorityQueue::empty() const {
 }
 
 void NodePriorityQueue::push(Node* node) {
-    if (m_count >= m_length) {
+    if (m_count >= m_capacity) {
         std::cerr << "NodePriorityQueue is full" << std::endl;
         return;
     }

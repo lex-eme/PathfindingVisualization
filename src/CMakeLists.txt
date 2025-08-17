@@ -21,5 +21,7 @@ add_executable(main main.cpp
         "data structures/NodeQueue.h"
         pathfinding/PF_AStar.cpp
         pathfinding/PF_AStar.h
+        OpenList.cpp
+        OpenList.h
 )
 target_link_libraries(main PRIVATE ImGui-SFML::ImGui-SFML)

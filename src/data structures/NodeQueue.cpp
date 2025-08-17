@@ -4,22 +4,22 @@
 
 
 NodeQueue::NodeQueue() {
-    m_nodes = new Node*[m_length];
+    m_nodes = new Node*[m_capacity];
 }
 
 NodeQueue::~NodeQueue() {
-    delete m_nodes;
+    delete[] m_nodes;
 }
 
 void NodeQueue::push(Node* node) {
-    if (m_count >= m_length) {
+    if (m_count >= m_capacity) {
         std::cerr << "QueueNode is full." << std::endl;
         return;
     }
 
     m_nodes[m_end] = node;
     m_count += 1;
-    m_end = (m_end + 1) % m_length;
+    m_end = (m_end + 1) % m_capacity;
 }
 
 Node* NodeQueue::pop() {
@@ -28,7 +28,7 @@ Node* NodeQueue::pop() {
         return nullptr;
     }
     Node* node = m_nodes[m_start];
-    m_start = (m_start + 1) % m_length;
+    m_start = (m_start + 1) % m_capacity;
     m_count -= 1;
     return node;
 }
