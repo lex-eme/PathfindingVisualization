@@ -15,7 +15,7 @@ class PathFindingGUI {
     WorldMap& m_map;
     PF* m_pathfinding;
 
-    Config m_config{0, 1.0f, true};
+    Config m_config{Instant, 1.0f, false, true};
     ConfigMenu m_configMenu;
 
     float m_animationTime = 0.5f;
@@ -26,6 +26,7 @@ public:
 
     void run();
     void restart() const;
+    void iterate() const;
 
 private:
     void initWindow();

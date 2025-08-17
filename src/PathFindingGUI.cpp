@@ -59,7 +59,7 @@ void PathFindingGUI::sUserInput() {
                     m_running = false;
                     break;
                 case sf::Keyboard::Key::N:
-                    m_pathfinding->searchIteration();
+                    iterate();
                     break;
                 default: break;
             }
@@ -85,7 +85,7 @@ void PathFindingGUI::sUserInput() {
 }
 
 void PathFindingGUI::update(const sf::Time deltaTime) {
-    if (m_config.typeIndex == 1) {
+    if (m_config.type == Animated && !m_config.animPaused) {
         m_timeSinceLastAnimation += deltaTime.asSeconds();
         if (m_timeSinceLastAnimation >= m_animationTime * m_config.animMultiplier) {
             m_pathfinding->searchIteration();
@@ -174,11 +174,19 @@ void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::
 }
 
 void PathFindingGUI::restart() const {
-    if (m_config.typeIndex == 0) {
-        m_pathfinding->solve(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
-    } else if (m_config.typeIndex <= 3) {
-        m_pathfinding->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+    switch (m_config.type) {
+        case Instant:
+            m_pathfinding->solve(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+            break;
+        case Animated:
+        case Step:
+            m_pathfinding->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
+            break;
     }
+}
+
+void PathFindingGUI::iterate() const {
+    m_pathfinding->searchIteration();
 }
 
 sf::Vector2i PathFindingGUI::screenToWorld(const sf::Vector2i screenPos) const {

@@ -10,7 +10,7 @@ ConfigMenu::ConfigMenu(const float m_width, const float m_height, const float m_
       m_height(m_height),
       m_x(m_x),
       m_y(m_y),
-      gui(gui),
+      m_gui(gui),
       m_config(m_config) {
 }
 
@@ -21,30 +21,74 @@ void ConfigMenu::sRender() {
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoCollapse)) {
         ImGui::Text("Configuration");
-        ImGui::Checkbox("Show grid", &m_config.showGrid);
-
-        const char* items[] = {"Instantaneous", "Animated", "Step by step"};
-
-        if (ImGui::BeginCombo("Type", items[m_config.typeIndex], ImGuiComboFlags_HeightSmall)) {
-            for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
-                const bool is_selected = (m_config.typeIndex == n);
-                if (ImGui::Selectable(items[n], is_selected)) {
-                    m_config.typeIndex = n;
-                    gui->restart();
-                }
-
-                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                if (is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
-
-        if (ImGui::Button("Restart")) {
-            gui->restart();
-        }
-        ImGui::SliderFloat("Speed", &m_config.animMultiplier, 2.0f, 0.0f, "%.3f");
+        visualizationSubMenu();
+        mapSubMenu();
+        algorithmSubMenu();
     }
     ImGui::End();
+}
+
+void ConfigMenu::visualizationSubMenu() const {
+    ImGui::SeparatorText("Visualization");
+
+    const char* items[] = {"Instantaneous", "Animated", "Step by step"};
+
+    if (ImGui::BeginCombo("Type", items[m_config.type], ImGuiComboFlags_HeightSmall)) {
+        for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+            const bool is_selected = (m_config.type == n);
+            if (ImGui::Selectable(items[n], is_selected)) {
+                if (n == 0) {
+                    m_config.type = Instant;
+                } else if (n == 1) {
+                    m_config.type = Animated;
+                } else {
+                    m_config.type = Step;
+                }
+                m_gui->restart();
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    switch (m_config.type) {
+        case Instant: {
+            break;
+        }
+        case Animated: {
+            ImGui::SliderFloat("Speed", &m_config.animMultiplier, 2.0f, 0.0f, "%.3f");
+            ImGui::SetNextItemWidth(m_width);
+            if (ImGui::Button("Restart")) {
+                m_gui->restart();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(m_config.animPaused ? "Play" : "Pause")) {
+                m_config.animPaused = !m_config.animPaused;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Next")) {
+                m_gui->iterate();
+            }
+            break;
+        }
+        case Step: {
+            if (ImGui::Button("Restart")) {
+                m_gui->restart();
+            }
+            break;
+        }
+    }
+}
+
+void ConfigMenu::mapSubMenu() const {
+    ImGui::SeparatorText("Map");
+    ImGui::Checkbox("Show grid", &m_config.showGrid);
+}
+
+void ConfigMenu::algorithmSubMenu() const {
+    ImGui::SeparatorText("Algorithm");
 }
