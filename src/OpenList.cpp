@@ -1,5 +1,7 @@
 #include "OpenList.h"
 
+#include <algorithm>
+
 void StackOpenList::push(Node* node) {
     m_stack.push_back(node);
 }

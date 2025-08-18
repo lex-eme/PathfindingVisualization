@@ -1,5 +1,6 @@
 #include "PF.h"
 
+#include <algorithm>
 #include <iostream>
 
 PF::PF(WorldMap& map, OpenList* openList): m_openList(openList), m_map(map) {
