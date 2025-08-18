@@ -13,7 +13,7 @@ PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map),
                                                     new PF_BFS(map), new PF_DFS(map), new PF_BeFS(map),
                                                     new PF_AStar(map)
                                                 },
-                                                m_configMenu(300.0f, m_map.getBounds().y * m_tileSize,
+                                                m_configMenu(250.0f, m_map.getBounds().y * m_tileSize,
                                                              m_map.getBounds().x * m_tileSize, 0.0f, this, m_config) {
     initWindow();
     m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
@@ -25,8 +25,6 @@ void PathFindingGUI::run() {
         const auto deltaTime = deltaClock.restart();
         ImGui::SFML::Update(m_window, deltaTime);
         sUserInput();
-
-        ImGui::ShowDemoWindow();
 
         update(deltaTime);
         sRender();
@@ -40,10 +38,13 @@ void PathFindingGUI::run() {
 
 void PathFindingGUI::initWindow() {
     const auto bounds = m_map.getBounds();
-    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 300, bounds.y * m_tileSize)), "Pathfinding",
+    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 250, bounds.y * m_tileSize)), "Pathfinding",
                     sf::Style::Titlebar | sf::Style::Close);
     m_window.setVerticalSyncEnabled(true);
-    ImGui::SFML::Init(m_window);
+    ImGui::SFML::Init(m_window, false);
+    const ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontFromFileTTF("../../assets/fonts/Roboto-Black.ttf", 12.0f);
+    ImGui::SFML::UpdateFontTexture();
 }
 
 void PathFindingGUI::loadMap(const std::string& path) const {
@@ -184,7 +185,7 @@ void PathFindingGUI::restart() const {
         case Animated:
         case Step:
             m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x,
-                                               m_goalPosition.y);
+                                                 m_goalPosition.y);
             break;
     }
 }
