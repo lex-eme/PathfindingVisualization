@@ -23,5 +23,7 @@ add_executable(main main.cpp
         pathfinding/PF_AStar.h
         OpenList.cpp
         OpenList.h
+        Benchmark.cpp
+        Benchmark.h
 )
 target_link_libraries(main PRIVATE ImGui-SFML::ImGui-SFML)

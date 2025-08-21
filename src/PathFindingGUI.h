@@ -13,7 +13,7 @@ class PathFindingGUI {
     float m_tileSize = 32.0f;
     bool m_running = true;
     WorldMap& m_map;
-    PF* m_pfs[4];
+    PF** m_pfs;
 
     Config m_config{Instant, 1.0f, 0, false, true};
     ConfigMenu m_configMenu;
@@ -22,7 +22,7 @@ class PathFindingGUI {
     float m_timeSinceLastAnimation = 0.0f;
 
 public:
-    explicit PathFindingGUI(WorldMap& map);
+    PathFindingGUI(WorldMap& map, PF* pfs[]);
 
     void run();
     void restart() const;

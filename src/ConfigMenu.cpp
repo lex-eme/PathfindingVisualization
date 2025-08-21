@@ -106,12 +106,10 @@ void ConfigMenu::mapSubMenu() const {
 void ConfigMenu::algorithmSubMenu() const {
     ImGui::SeparatorText("Algorithm");
 
-    const char* items[] = {"Breadth first search", "Depth first search", "Best first search", "A*"};
-
-    if (ImGui::BeginCombo("Algo", items[m_config.pfIndex], ImGuiComboFlags_HeightSmall)) {
-        for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+    if (ImGui::BeginCombo("Algo", PF::names[m_config.pfIndex], ImGuiComboFlags_HeightSmall)) {
+        for (int n = 0; n < IM_ARRAYSIZE(PF::names); n++) {
             const bool is_selected = (m_config.pfIndex == n);
-            if (ImGui::Selectable(items[n], is_selected)) {
+            if (ImGui::Selectable(PF::names[n], is_selected)) {
                 m_config.pfIndex = n;
                 m_gui->restart();
             }

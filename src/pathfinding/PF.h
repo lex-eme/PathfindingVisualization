@@ -17,7 +17,13 @@ protected:
     bool m_inProgress = false;
 
 public:
-    explicit PF(WorldMap& map, OpenList* openList);
+    enum Algorithm {
+        BFS, DFS, BeFS, AStar, COUNT
+    };
+
+    static PF* Create(Algorithm algorithm, WorldMap& map);
+    static const char* names[COUNT];
+
     virtual ~PF();
 
     void solve(int sx, int sy, int gx, int gy);
@@ -29,6 +35,8 @@ public:
     [[nodiscard]] std::vector<Action> getPath() const;
 
 protected:
+    explicit PF(WorldMap& map, OpenList* openList);
+
     [[nodiscard]] virtual int heuristic(int x, int y) const;
     [[nodiscard]] virtual bool shouldAddToOpenList(int x, int y) const;
     [[nodiscard]] bool isInClosedList(int x, int y) const;

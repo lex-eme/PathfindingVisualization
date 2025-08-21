@@ -3,6 +3,23 @@
 #include <algorithm>
 #include <iostream>
 
+#include "PF_AStar.h"
+#include "PF_BeFS.h"
+#include "PF_BFS.h"
+#include "PF_DFS.h"
+
+PF* PF::Create(const Algorithm algorithm, WorldMap& map) {
+    switch (algorithm) {
+        case BFS: return new PF_BFS(map);
+        case DFS: return new PF_DFS(map);
+        case BeFS: return new PF_BeFS(map);
+        case AStar: return new PF_AStar(map);
+        default: return nullptr;
+    }
+}
+
+const char* PF::names[] = {"Breadth first search", "Depth first search", "Best first search", "A*"};
+
 PF::PF(WorldMap& map, OpenList* openList): m_openList(openList), m_map(map) {
     m_nodes.reserve(1024);
 }

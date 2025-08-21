@@ -3,19 +3,13 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
-#include "pathfinding/PF_AStar.h"
-#include "pathfinding/PF_BeFS.h"
-#include "pathfinding/PF_BFS.h"
-#include "pathfinding/PF_DFS.h"
 
-PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map),
-                                                m_pfs{
-                                                    new PF_BFS(map), new PF_DFS(map), new PF_BeFS(map),
-                                                    new PF_AStar(map)
-                                                },
-                                                m_configMenu(250.0f, m_map.getBounds().y * m_tileSize,
-                                                             m_map.getBounds().x * m_tileSize - 250, 0.0f, this,
-                                                             m_config) {
+PathFindingGUI::PathFindingGUI(WorldMap& map, PF* pfs[]) : m_map(map),
+                                                           m_pfs(pfs),
+                                                           m_configMenu(250.0f, m_map.getBounds().y * m_tileSize,
+                                                                        m_map.getBounds().x * m_tileSize - 250, 0.0f,
+                                                                        this,
+                                                                        m_config) {
     initWindow();
     m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
 }
