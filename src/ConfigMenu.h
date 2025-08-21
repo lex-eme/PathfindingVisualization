@@ -28,6 +28,9 @@ public:
     ConfigMenu(float m_width, float m_height, float m_x, float m_y, PathFindingGUI* gui, Config& m_config);
 
     void sRender();
+    void setPosition(float x, float y);
+    void setSize(float width, float height);
+    [[nodiscard]] float getWidth() const;
 
 private:
     void visualizationSubMenu() const;

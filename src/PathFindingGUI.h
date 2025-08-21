@@ -37,6 +37,7 @@ private:
     void sRender();
     void drawLine(float x1, float y1, float x2, float y2, sf::Color color);
 
+    void resize(sf::Vector2u size);
 
     sf::Vector2i screenToWorld(sf::Vector2i screenPos) const;
     [[nodiscard]] bool isInViewport(sf::Vector2i screenPos) const;

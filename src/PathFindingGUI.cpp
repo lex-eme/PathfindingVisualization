@@ -14,7 +14,8 @@ PathFindingGUI::PathFindingGUI(WorldMap& map) : m_map(map),
                                                     new PF_AStar(map)
                                                 },
                                                 m_configMenu(250.0f, m_map.getBounds().y * m_tileSize,
-                                                             m_map.getBounds().x * m_tileSize, 0.0f, this, m_config) {
+                                                             m_map.getBounds().x * m_tileSize - 250, 0.0f, this,
+                                                             m_config) {
     initWindow();
     m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
 }
@@ -38,9 +39,9 @@ void PathFindingGUI::run() {
 
 void PathFindingGUI::initWindow() {
     const auto bounds = m_map.getBounds();
-    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize + 250, bounds.y * m_tileSize)), "Pathfinding",
-                    sf::Style::Titlebar | sf::Style::Close);
+    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize)), "Pathfinding");
     m_window.setVerticalSyncEnabled(true);
+    resize(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize));
     ImGui::SFML::Init(m_window, false);
     const ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontFromFileTTF("../../assets/fonts/Roboto-Black.ttf", 12.0f);
@@ -84,6 +85,16 @@ void PathFindingGUI::sUserInput() {
                 }
                 default: break;
             }
+        } else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
+            resize(resized->size);
+        } else if (const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
+            auto view = m_window.getView();
+            if (scroll->delta < 0.0f) {
+                view.zoom(1.0f / 0.9f);
+            } else if (scroll->delta > 0.0f) {
+                view.zoom(0.9f);
+            }
+            m_window.setView(view);
         }
     }
 }
@@ -177,6 +188,19 @@ void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::
     m_window.draw(line, 2, sf::PrimitiveType::LineStrip);
 }
 
+void PathFindingGUI::resize(const sf::Vector2u size) {
+    const float menuWidth = m_configMenu.getWidth();
+
+    m_configMenu.setPosition(size.x - menuWidth, 0.0f);
+    m_configMenu.setSize(menuWidth, size.y);
+
+    sf::View view = m_window.getView();
+    float xRatio = (size.x - menuWidth) / size.x;
+    view.setViewport(sf::FloatRect({0.0f, 0.0f}, {xRatio, 1.0f}));
+    view.setSize({size.x - menuWidth, static_cast<float>(size.y)});
+    m_window.setView(view);
+}
+
 void PathFindingGUI::restart() const {
     switch (m_config.type) {
         case Instant:
@@ -196,9 +220,9 @@ void PathFindingGUI::iterate() const {
 
 sf::Vector2i PathFindingGUI::screenToWorld(const sf::Vector2i screenPos) const {
     const int size = static_cast<int>(m_tileSize);
-    return screenPos / size;
+    return sf::Vector2i(m_window.mapPixelToCoords(screenPos)) / size;
 }
 
 bool PathFindingGUI::isInViewport(const sf::Vector2i screenPos) const {
-    return screenPos.x < (m_map.getBounds().x * m_tileSize);
+    return screenPos.x < m_window.getSize().x - m_configMenu.getWidth();
 }

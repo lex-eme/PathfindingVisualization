@@ -28,6 +28,20 @@ void ConfigMenu::sRender() {
     ImGui::End();
 }
 
+void ConfigMenu::setPosition(const float x, const float y) {
+    m_x = x;
+    m_y = y;
+}
+
+void ConfigMenu::setSize(const float width, const float height) {
+    m_width = width;
+    m_height = height;
+}
+
+float ConfigMenu::getWidth() const {
+    return m_width;
+}
+
 void ConfigMenu::visualizationSubMenu() const {
     ImGui::SeparatorText("Visualization");
 
