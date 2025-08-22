@@ -1,7 +1,6 @@
 #include "PF.h"
 
 #include <algorithm>
-#include <iostream>
 
 #include "PF_AStar.h"
 #include "PF_BeFS.h"
@@ -54,7 +53,6 @@ void PF::searchIteration() {
 
     if (m_openList->empty()) {
         m_state = NotFound;
-        std::cout << "Unreachable destination" << std::endl;
         return;
     }
 
@@ -66,10 +64,6 @@ void PF::searchIteration() {
 
     if (m_node->m_x == m_goalX && m_node->m_y == m_goalY) {
         m_state = Found;
-        std::cout << "Path found" << std::endl;
-        std::cout << "Open list: " << m_openList->size() << std::endl;
-        std::cout << "Closed list: " << m_closedList.size() << std::endl;
-        std::cout << "Path length: " << m_node->m_depth << std::endl;
         return;
     }
 
