@@ -212,6 +212,10 @@ void PathFindingGUI::iterate() const {
     m_pfs[m_config.pfIndex]->searchIteration();
 }
 
+PF::Info PathFindingGUI::getPathInfo() const {
+    return m_pfs[m_config.pfIndex]->getInfo();
+}
+
 sf::Vector2i PathFindingGUI::screenToWorld(const sf::Vector2i screenPos) const {
     const int size = static_cast<int>(m_tileSize);
     return sf::Vector2i(m_window.mapPixelToCoords(screenPos)) / size;

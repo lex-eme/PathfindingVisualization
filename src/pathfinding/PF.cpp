@@ -30,7 +30,7 @@ PF::~PF() {
 
 void PF::solve(const int sx, const int sy, const int gx, const int gy) {
     startSearch(sx, sy, gx, gy);
-    while (m_inProgress) {
+    while (m_state == InProgress) {
         searchIteration();
     }
 }
@@ -39,7 +39,7 @@ void PF::startSearch(const int sx, const int sy, const int gx, const int gy) {
     m_goalX = gx;
     m_goalY = gy;
 
-    m_inProgress = true;
+    m_state = InProgress;
     m_openList->clear();
     m_closedList.clear();
 
@@ -48,12 +48,12 @@ void PF::startSearch(const int sx, const int sy, const int gx, const int gy) {
 }
 
 void PF::searchIteration() {
-    if (!m_inProgress) {
+    if (m_state != InProgress) {
         return;
     }
 
     if (m_openList->empty()) {
-        m_inProgress = false;
+        m_state = NotFound;
         std::cout << "Unreachable destination" << std::endl;
         return;
     }
@@ -65,7 +65,7 @@ void PF::searchIteration() {
     }
 
     if (m_node->m_x == m_goalX && m_node->m_y == m_goalY) {
-        m_inProgress = false;
+        m_state = Found;
         std::cout << "Path found" << std::endl;
         std::cout << "Open list: " << m_openList->size() << std::endl;
         std::cout << "Closed list: " << m_closedList.size() << std::endl;
@@ -103,6 +103,10 @@ std::vector<Action> PF::getPath() const {
     }
 
     return result;
+}
+
+PF::Info PF::getInfo() const {
+    return {m_node->m_depth, m_openList->size(), m_closedList.size(), m_state};
 }
 
 void PF::expand() {

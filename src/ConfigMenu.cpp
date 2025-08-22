@@ -121,4 +121,22 @@ void ConfigMenu::algorithmSubMenu() const {
         }
         ImGui::EndCombo();
     }
+
+    const auto [pathLength, openListSize, closedList, state] = m_gui->getPathInfo();
+
+    switch (state) {
+        case PF::InProgress:
+            ImGui::Text("State: in progress");
+            break;
+        case PF::Found:
+            ImGui::Text("State: path found");
+            break;
+        case PF::NotFound:
+            ImGui::Text("State: path not found");
+            break;
+    }
+
+    ImGui::Text("Path length: %d", pathLength);
+    ImGui::Text("Open list size: %d", openListSize);
+    ImGui::Text("Closed list size: %d", closedList);
 }

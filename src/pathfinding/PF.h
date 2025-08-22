@@ -4,6 +4,18 @@
 
 
 class PF {
+public:
+    enum State {
+        InProgress, Found, NotFound
+    };
+
+    struct Info {
+        int pathLength = 0;
+        size_t openListSize = 0;
+        size_t closedList = 0;
+        State state = NotFound;
+    };
+
 protected:
     int m_goalX = -1;
     int m_goalY = -1;
@@ -14,7 +26,7 @@ protected:
     OpenList* m_openList;
 
     WorldMap& m_map;
-    bool m_inProgress = false;
+    State m_state = NotFound;
 
 public:
     enum Algorithm {
@@ -33,6 +45,7 @@ public:
     [[nodiscard]] std::vector<Action> getClosedList() const;
     [[nodiscard]] std::vector<Action> getOpenList() const;
     [[nodiscard]] std::vector<Action> getPath() const;
+    [[nodiscard]] Info getInfo() const;
 
 protected:
     explicit PF(WorldMap& map, OpenList* openList);

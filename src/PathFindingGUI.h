@@ -27,6 +27,7 @@ public:
     void run();
     void restart() const;
     void iterate() const;
+    PF::Info getPathInfo() const;
 
 private:
     void initWindow();
