@@ -137,6 +137,6 @@ void ConfigMenu::algorithmSubMenu() const {
     }
 
     ImGui::Text("Path length: %d", pathLength);
-    ImGui::Text("Open list size: %d", openListSize);
-    ImGui::Text("Closed list size: %d", closedList);
+    ImGui::Text("Open list size: %zu", openListSize);
+    ImGui::Text("Closed list size: %zu", closedList);
 }

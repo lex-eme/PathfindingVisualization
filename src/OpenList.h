@@ -1,4 +1,7 @@
 #pragma once
+
+#include <vector>
+
 #include "Node.h"
 #include "data structures/NodePriorityQueue.h"
 #include "data structures/NodeQueue.h"
