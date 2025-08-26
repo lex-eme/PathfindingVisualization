@@ -4,12 +4,15 @@
 #include <imgui.h>
 
 
+constexpr float ConfigMenuWidth = 250.0f;
+
 PathFindingGUI::PathFindingGUI(WorldMap& map, PF* pfs[]) : m_map(map),
                                                            m_pfs(pfs),
-                                                           m_configMenu(250.0f, m_map.getBounds().y * m_tileSize,
-                                                                        m_map.getBounds().x * m_tileSize - 250, 0.0f,
-                                                                        this,
-                                                                        m_config) {
+                                                           m_configMenu(
+                                                               ConfigMenuWidth, m_map.getBounds().y * m_tileSize,
+                                                               m_map.getBounds().x * m_tileSize - ConfigMenuWidth, 0.0f,
+                                                               this,
+                                                               m_config) {
     initWindow();
     m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
 }
@@ -19,10 +22,10 @@ void PathFindingGUI::run() {
     while (m_running) {
         const auto deltaTime = deltaClock.restart();
         ImGui::SFML::Update(m_window, deltaTime);
-        sUserInput();
+        userInput();
 
         update(deltaTime);
-        sRender();
+        render();
 
         ImGui::SFML::Render(m_window);
         m_window.display();
@@ -35,61 +38,116 @@ void PathFindingGUI::initWindow() {
     const auto bounds = m_map.getBounds();
     m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize)), "Pathfinding");
     m_window.setVerticalSyncEnabled(true);
-    resize(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize));
+    windowResized(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize));
     ImGui::SFML::Init(m_window, false);
     const ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontFromFileTTF("../../assets/fonts/Roboto-Black.ttf", 12.0f);
     ImGui::SFML::UpdateFontTexture();
+    m_oldMousePosition = sf::Mouse::getPosition();
 }
 
 void PathFindingGUI::loadMap(const std::string& path) const {
     m_map.loadFromFile(path);
 }
 
-void PathFindingGUI::sUserInput() {
+void PathFindingGUI::userInput() {
     while (const std::optional<sf::Event> event = m_window.pollEvent()) {
         ImGui::SFML::ProcessEvent(m_window, event.value());
 
         if (event->is<sf::Event::Closed>()) {
             m_running = false;
-        } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-            switch (keyPressed->code) {
-                case sf::Keyboard::Key::Escape:
-                    m_running = false;
-                    break;
-                case sf::Keyboard::Key::N:
-                    iterate();
-                    break;
-                default: break;
-            }
-        } else if (const auto* buttonClicked = event->getIf<sf::Event::MouseButtonPressed>()) {
-            switch (buttonClicked->button) {
-                case sf::Mouse::Button::Left: {
-                    if (isInViewport(buttonClicked->position)) {
-                        m_goalPosition = screenToWorld(buttonClicked->position);
-                        restart();
-                    }
-                    break;
-                }
-                case sf::Mouse::Button::Right: {
-                    if (isInViewport(buttonClicked->position)) {
-                        m_startPosition = screenToWorld(buttonClicked->position);
-                        restart();
-                    }
-                }
-                default: break;
-            }
         } else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-            resize(resized->size);
+            windowResized(resized->size);
+        } else if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+            keyPressed(key);
+        } else if (const auto* buttonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+            mouseButtonPressed(buttonPressed);
+        } else if (const auto* buttonReleased = event->getIf<sf::Event::MouseButtonReleased>()) {
+            mouseButtonReleased(buttonReleased);
         } else if (const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
-            auto view = m_window.getView();
-            if (scroll->delta < 0.0f) {
-                view.zoom(1.0f / 0.9f);
-            } else if (scroll->delta > 0.0f) {
-                view.zoom(0.9f);
-            }
-            m_window.setView(view);
+            mouseWheelScrolled(scroll);
+        } else if (const auto* move = event->getIf<sf::Event::MouseMoved>()) {
+            mouseMoved(move);
         }
+    }
+}
+
+void PathFindingGUI::windowResized(const sf::Vector2u size) {
+    const float menuWidth = m_configMenu.getWidth();
+
+    m_configMenu.setPosition(size.x - menuWidth, 0.0f);
+    m_configMenu.setSize(menuWidth, size.y);
+
+    sf::View view = m_window.getView();
+    float xRatio = (size.x - menuWidth) / size.x;
+    view.setViewport(sf::FloatRect({0.0f, 0.0f}, {xRatio, 1.0f}));
+    view.setSize({size.x - menuWidth, static_cast<float>(size.y)});
+    m_window.setView(view);
+}
+
+void PathFindingGUI::keyPressed(const sf::Event::KeyPressed* keyPressed) {
+    switch (keyPressed->code) {
+        case sf::Keyboard::Key::Escape:
+            m_running = false;
+            break;
+        case sf::Keyboard::Key::N:
+            iterate();
+            break;
+        default: break;
+    }
+}
+
+void PathFindingGUI::mouseButtonPressed(const sf::Event::MouseButtonPressed* buttonClicked) {
+    switch (buttonClicked->button) {
+        case sf::Mouse::Button::Left: {
+            if (isInViewport(buttonClicked->position)) {
+                m_goalPosition = screenToWorld(buttonClicked->position);
+                restart();
+            }
+            break;
+        }
+        case sf::Mouse::Button::Right: {
+            if (isInViewport(buttonClicked->position)) {
+                m_startPosition = screenToWorld(buttonClicked->position);
+                restart();
+            }
+            break;
+        }
+        case sf::Mouse::Button::Middle: {
+            m_oldMousePosition = buttonClicked->position;
+            m_isPanning = true;
+        }
+        default: break;
+    }
+}
+
+void PathFindingGUI::mouseButtonReleased(const sf::Event::MouseButtonReleased* buttonReleased) {
+    switch (buttonReleased->button) {
+        case sf::Mouse::Button::Middle: {
+            m_isPanning = false;
+        }
+        default: break;
+    }
+}
+
+void PathFindingGUI::mouseWheelScrolled(const sf::Event::MouseWheelScrolled* scroll) {
+    auto view = m_window.getView();
+    if (scroll->delta < 0.0f) {
+        view.zoom(1.0f / 0.9f);
+    } else if (scroll->delta > 0.0f) {
+        view.zoom(0.9f);
+    }
+    m_window.setView(view);
+}
+
+void PathFindingGUI::mouseMoved(const sf::Event::MouseMoved* move) {
+    if (m_isPanning) {
+        auto view = m_window.getView();
+        auto deltaPosition = m_window.mapPixelToCoords(m_oldMousePosition) - m_window.
+                             mapPixelToCoords(move->position);
+        view.move(sf::Vector2f(deltaPosition));
+        m_window.setView(view);
+        m_oldMousePosition = move->position;
     }
 }
 
@@ -102,10 +160,10 @@ void PathFindingGUI::update(const sf::Time deltaTime) {
         }
     }
 
-    m_configMenu.sRender();
+    m_configMenu.render();
 }
 
-void PathFindingGUI::sRender() {
+void PathFindingGUI::render() {
     m_window.clear();
 
     sf::RectangleShape rect;
@@ -180,19 +238,6 @@ void PathFindingGUI::drawLine(float x1, float y1, float x2, float y2, const sf::
     };
 
     m_window.draw(line, 2, sf::PrimitiveType::LineStrip);
-}
-
-void PathFindingGUI::resize(const sf::Vector2u size) {
-    const float menuWidth = m_configMenu.getWidth();
-
-    m_configMenu.setPosition(size.x - menuWidth, 0.0f);
-    m_configMenu.setSize(menuWidth, size.y);
-
-    sf::View view = m_window.getView();
-    float xRatio = (size.x - menuWidth) / size.x;
-    view.setViewport(sf::FloatRect({0.0f, 0.0f}, {xRatio, 1.0f}));
-    view.setSize({size.x - menuWidth, static_cast<float>(size.y)});
-    m_window.setView(view);
 }
 
 void PathFindingGUI::restart() const {

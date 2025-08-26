@@ -14,7 +14,7 @@ ConfigMenu::ConfigMenu(const float m_width, const float m_height, const float m_
       m_config(m_config) {
 }
 
-void ConfigMenu::sRender() {
+void ConfigMenu::render() {
     ImGui::SetNextWindowSize({m_width, m_height});
     ImGui::SetNextWindowPos({m_x, m_y});
     if (ImGui::Begin("Configuration", nullptr,
