@@ -93,6 +93,10 @@ void ConfigMenu::visualizationSubMenu() const {
             if (ImGui::Button("Restart")) {
                 m_gui->restart();
             }
+            ImGui::SameLine();
+            if (ImGui::Button("Next")) {
+                m_gui->iterate();
+            }
             break;
         }
     }
