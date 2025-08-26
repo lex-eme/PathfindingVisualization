@@ -1,7 +1,7 @@
 # Pathfinding visualizer
 
 Small UI to visualize the behavior of different pathfinding algorithms on a grid based map.
-
+![overview](git-images/AppScreenshot.png)
 Algorithms currently implemented:
 - Breadth first search
 - Depth first search
