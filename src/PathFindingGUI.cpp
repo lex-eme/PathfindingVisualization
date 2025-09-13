@@ -2,19 +2,13 @@
 
 #include <imgui-SFML.h>
 #include <imgui.h>
+#include <sstream>
 
 
 constexpr float ConfigMenuWidth = 250.0f;
 
-PathFindingGUI::PathFindingGUI(WorldMap& map, PF* pfs[]) : m_map(map),
-                                                           m_pfs(pfs),
-                                                           m_configMenu(
-                                                               ConfigMenuWidth, m_map.getBounds().y * m_tileSize,
-                                                               m_map.getBounds().x * m_tileSize - ConfigMenuWidth, 0.0f,
-                                                               this,
-                                                               m_config) {
+PathFindingGUI::PathFindingGUI(WorldMap& map, PF* pfs[]) : m_map(map), m_pfs(pfs), m_configMenu(this, m_config) {
     initWindow();
-    m_pfs[m_config.pfIndex]->startSearch(m_startPosition.x, m_startPosition.y, m_goalPosition.x, m_goalPosition.y);
 }
 
 void PathFindingGUI::run() {
@@ -35,19 +29,18 @@ void PathFindingGUI::run() {
 }
 
 void PathFindingGUI::initWindow() {
-    const auto bounds = m_map.getBounds();
-    m_window.create(sf::VideoMode(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize)), "Pathfinding");
+    m_window.create(sf::VideoMode::getDesktopMode(), "Pathfinding");
     m_window.setVerticalSyncEnabled(true);
-    windowResized(sf::Vector2u(bounds.x * m_tileSize, bounds.y * m_tileSize));
     ImGui::SFML::Init(m_window, false);
     const ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontFromFileTTF("../../assets/fonts/Roboto-Black.ttf", 12.0f);
     ImGui::SFML::UpdateFontTexture();
     m_oldMousePosition = sf::Mouse::getPosition();
+    windowResized(m_window.getSize());
 }
 
 void PathFindingGUI::loadMap(const std::string& path) const {
-    m_map.loadFromFile(path);
+    m_map.loadFromFile(m_mapsDirectory + path);
 }
 
 void PathFindingGUI::userInput() {
@@ -73,15 +66,13 @@ void PathFindingGUI::userInput() {
 }
 
 void PathFindingGUI::windowResized(const sf::Vector2u size) {
-    const float menuWidth = m_configMenu.getWidth();
-
-    m_configMenu.setPosition(size.x - menuWidth, 0.0f);
-    m_configMenu.setSize(menuWidth, size.y);
+    m_configMenu.setPosition(size.x - ConfigMenuWidth, 0.0f);
+    m_configMenu.setSize(ConfigMenuWidth, size.y);
 
     sf::View view = m_window.getView();
-    float xRatio = (size.x - menuWidth) / size.x;
+    float xRatio = (size.x - ConfigMenuWidth) / size.x;
     view.setViewport(sf::FloatRect({0.0f, 0.0f}, {xRatio, 1.0f}));
-    view.setSize({size.x - menuWidth, static_cast<float>(size.y)});
+    view.setSize({size.x - ConfigMenuWidth, static_cast<float>(size.y)});
     m_window.setView(view);
 }
 
@@ -131,13 +122,15 @@ void PathFindingGUI::mouseButtonReleased(const sf::Event::MouseButtonReleased* b
 }
 
 void PathFindingGUI::mouseWheelScrolled(const sf::Event::MouseWheelScrolled* scroll) {
-    auto view = m_window.getView();
-    if (scroll->delta < 0.0f) {
-        view.zoom(1.0f / 0.9f);
-    } else if (scroll->delta > 0.0f) {
-        view.zoom(0.9f);
+    if (isInViewport(scroll->position) && scroll->wheel == sf::Mouse::Wheel::Vertical) {
+        auto view = m_window.getView();
+        if (scroll->delta < 0.0f) {
+            view.zoom(1.0f / 0.9f);
+        } else if (scroll->delta > 0.0f) {
+            view.zoom(0.9f);
+        }
+        m_window.setView(view);
     }
-    m_window.setView(view);
 }
 
 void PathFindingGUI::mouseMoved(const sf::Event::MouseMoved* move) {
@@ -255,6 +248,12 @@ void PathFindingGUI::restart() const {
 
 void PathFindingGUI::iterate() const {
     m_pfs[m_config.pfIndex]->searchIteration();
+}
+
+void PathFindingGUI::setMap(const std::string& name) {
+    loadMap(name);
+    windowResized(m_window.getSize());
+    restart();
 }
 
 PF::Info PathFindingGUI::getPathInfo() const {

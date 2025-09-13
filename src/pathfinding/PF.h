@@ -25,7 +25,7 @@ protected:
     std::vector<Node*> m_closedList;
     OpenList* m_openList;
 
-    WorldMap& m_map;
+    const WorldMap& m_map;
     State m_state = NotFound;
 
 public:

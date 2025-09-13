@@ -4,7 +4,6 @@
 
 int main() {
     WorldMap map;
-    map.loadFromFile("../../assets/map2.txt");
     PF* pfs[] = {
         PF::Create(PF::BFS, map),
         PF::Create(PF::DFS, map),
@@ -21,4 +20,6 @@ int main() {
     delete pfs[1];
     delete pfs[2];
     delete pfs[3];
+
+    return 0;
 }

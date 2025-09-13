@@ -15,6 +15,7 @@ class PathFindingGUI {
     PF** m_pfs;
 
     Config m_config{Instant, 1.0f, 0, false, true};
+    const std::string m_mapsDirectory = "../../assets/maps/";
     ConfigMenu m_configMenu;
 
     float m_animationTime = 0.5f;
@@ -30,6 +31,7 @@ public:
     void run();
     void restart() const;
     void iterate() const;
+    void setMap(const std::string& name);
     PF::Info getPathInfo() const;
 
 private:

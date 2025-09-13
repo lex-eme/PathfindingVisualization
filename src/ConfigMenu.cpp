@@ -4,14 +4,9 @@
 
 #include "PathFindingGUI.h"
 
-ConfigMenu::ConfigMenu(const float m_width, const float m_height, const float m_x, const float m_y, PathFindingGUI* gui,
-                       Config& m_config)
-    : m_width(m_width),
-      m_height(m_height),
-      m_x(m_x),
-      m_y(m_y),
-      m_gui(gui),
-      m_config(m_config) {
+ConfigMenu::ConfigMenu(PathFindingGUI* gui, Config& config)
+    : m_width(0), m_height(0), m_x(0), m_y(0), m_gui(gui), m_config(config) {
+    readMapsDirectory();
 }
 
 void ConfigMenu::render() {
@@ -42,6 +37,18 @@ float ConfigMenu::getWidth() const {
     return m_width;
 }
 
+void ConfigMenu::readMapsDirectory() {
+    for (auto const& entry: std::filesystem::directory_iterator("../../assets/maps")) {
+        if (is_regular_file(entry)) {
+            m_mapNames.push_back(entry.path().filename());
+        }
+    }
+
+    if (!m_mapNames.empty()) {
+        m_gui->setMap(m_mapNames[0]);
+    }
+}
+
 void ConfigMenu::visualizationSubMenu() const {
     ImGui::SeparatorText("Visualization");
 
@@ -49,8 +56,8 @@ void ConfigMenu::visualizationSubMenu() const {
 
     if (ImGui::BeginCombo("Type", items[m_config.type], ImGuiComboFlags_HeightSmall)) {
         for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
-            const bool is_selected = (m_config.type == n);
-            if (ImGui::Selectable(items[n], is_selected)) {
+            const bool isSelected = (m_config.type == n);
+            if (ImGui::Selectable(items[n], isSelected)) {
                 if (n == 0) {
                     m_config.type = Instant;
                 } else if (n == 1) {
@@ -62,7 +69,7 @@ void ConfigMenu::visualizationSubMenu() const {
             }
 
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected) {
+            if (isSelected) {
                 ImGui::SetItemDefaultFocus();
             }
         }
@@ -104,7 +111,22 @@ void ConfigMenu::visualizationSubMenu() const {
 
 void ConfigMenu::mapSubMenu() const {
     ImGui::SeparatorText("Map");
-    ImGui::Checkbox("Show grid", &m_config.showGrid);
+    static int selectedItem = 0;
+
+    if (ImGui::BeginListBox("##Maps", ImVec2(-FLT_MIN, 4 * ImGui::GetTextLineHeightWithSpacing()))) {
+        for (int n = 0; n < m_mapNames.size(); n++) {
+            const bool isSelected = (selectedItem == n);
+            if (ImGui::Selectable(m_mapNames[n].c_str(), isSelected)) {
+                selectedItem = n;
+                m_gui->setMap(m_mapNames[n]);
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndListBox();
+    }
 }
 
 void ConfigMenu::algorithmSubMenu() const {

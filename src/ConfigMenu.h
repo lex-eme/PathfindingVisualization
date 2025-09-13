@@ -1,9 +1,10 @@
 #pragma once
 #include <cstddef>
+#include <vector>
 
 class PathFindingGUI;
 
-enum VisualizationType: int {
+enum VisualizationType {
     Instant, Animated, Step
 };
 
@@ -21,11 +22,13 @@ class ConfigMenu {
     float m_x;
     float m_y;
 
+    std::vector<std::string> m_mapNames;
+
     PathFindingGUI* m_gui;
     Config& m_config;
 
 public:
-    ConfigMenu(float m_width, float m_height, float m_x, float m_y, PathFindingGUI* gui, Config& m_config);
+    ConfigMenu(PathFindingGUI* gui, Config& config);
 
     void render();
     void setPosition(float x, float y);
@@ -33,6 +36,8 @@ public:
     [[nodiscard]] float getWidth() const;
 
 private:
+    void readMapsDirectory();
+
     void visualizationSubMenu() const;
     void mapSubMenu() const;
     void algorithmSubMenu() const;
